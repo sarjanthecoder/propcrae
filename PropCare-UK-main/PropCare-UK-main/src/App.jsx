@@ -30,50 +30,31 @@ function App() {
 
   useEffect(() => {
     const handleHashChange = () => {
-      setCurrentHash(window.location.hash)
-      if (['#privacy', '#terms'].includes(window.location.hash)) {
+      const hash = window.location.hash
+      setCurrentHash(hash)
+
+      if (['#privacy', '#terms'].includes(hash)) {
         window.scrollTo({ top: 0, behavior: 'instant' })
-      }
-    }
-    window.addEventListener('hashchange', handleHashChange)
-
-    // Intercept clicks on anchor links for smooth scrolling compatibility
-    const handleGlobalClick = (e) => {
-      const anchor = e.target.closest('a')
-      if (!anchor) return
-
-      const href = anchor.getAttribute('href')
-      if (href && href.startsWith('#') && href.length > 1) {
-        const id = href.substring(1)
-        
-        // Let legal views change standard hash states
-        if (['privacy', 'terms'].includes(id)) return
-
-        e.preventDefault()
-
-        // Update URL state without generic jump
-        window.history.pushState(null, '', href)
-
-        // If transitioning from legal pages, restore landing page state
-        if (['#privacy', '#terms'].includes(window.location.hash)) {
-          setCurrentHash(href)
-        }
-
-        // Wait slightly for DOM to mount and scroll smoothly
+      } else if (hash && hash.startsWith('#') && hash.length > 1) {
+        const id = hash.substring(1)
+        // Wait for mobile menu collapse animations to finish and layout to settle
         setTimeout(() => {
           const element = document.getElementById(id)
           if (element) {
             element.scrollIntoView({ behavior: 'smooth' })
           }
-        }, 100)
+        }, 120)
       }
     }
+    window.addEventListener('hashchange', handleHashChange)
 
-    document.addEventListener('click', handleGlobalClick)
+    // Trigger scrolling on initial load if landed on hash
+    if (window.location.hash) {
+      setTimeout(handleHashChange, 200)
+    }
 
     return () => {
       window.removeEventListener('hashchange', handleHashChange)
-      document.removeEventListener('click', handleGlobalClick)
     }
   }, [])
 
